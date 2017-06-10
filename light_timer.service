@@ -1,0 +1,24 @@
+[Unit]
+Description=Turns the grow lights on and off at specified times
+# For instructions on setting this up in a new system see below comments
+# sudo cp light_timer.service /etc/systemd/system/light_timer.service
+# sudo systemctl daemon-reload
+# sudo systemctl enable light_timer.service
+# sudo systemctl start light_timer.service
+# To see logs: sudo journalctl --unit=light_timer
+# the watchdog is setup at /etc/systemd/system.conf
+# https://www.freedesktop.org/wiki/Software/systemd/NetworkTarget/
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=notify
+Environment=PYTHONDONTWRITEBYTECODE=1
+ExecStart=/home/aero/light_timer/light_timer.py
+WatchdogSec=120
+NotifyAccess=all
+Restart=always
+
+
+[Install]
+WantedBy=multi-user.target
