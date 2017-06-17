@@ -6,6 +6,7 @@ from datetime import timedelta
 from pytz import timezone
 import pigpio
 import time
+import sys
 
 WDOG_INTERVAL=15
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     print("TURN_OFF = {}".format(TURN_OFF))
 
     while True:
-        if now().hour < TURN_OFF and now().hour > TURN_ON:
+        if now().hour < TURN_OFF and now().hour >= TURN_ON:
             print("Turning on lights")
             print("now = {}".format(now()))
             print("next_end_time = {}".format(next_end_time()))
@@ -93,6 +94,8 @@ if __name__ == "__main__":
             # Wake up every few secs to tell systemd we are alive
             total_sleep_time = (next_start_time() - now()).seconds
             print("Total sleep time = {}".format(total_sleep_time))
+            print("next start time {}".format(next_start_time()))
+            print("now {}".format(now()))
             for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
                 time.sleep(WDOG_INTERVAL)
                 n.notify("WATCHDOG=1")
