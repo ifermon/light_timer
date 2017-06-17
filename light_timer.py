@@ -7,6 +7,7 @@ from pytz import timezone
 import pigpio
 import time
 import sys
+import argparse
 
 WDOG_INTERVAL=15
 
@@ -19,6 +20,12 @@ TURN_OFF = 21
 
 # This is the broadcom pin identifier
 LIGHT_SIGNAL_PIN = 7
+
+def parse_command_line():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-off", action="store_true", help="Turn off light")
+    parser.add_argument("-on", action="store_true", help="Turn on light")
+    return parser.parse_args()
 
 def tz():
     return timezone('US/Eastern')
@@ -66,6 +73,18 @@ def configure_gpio():
 if __name__ == "__main__":
 
     pi = configure_gpio()
+
+    args = parse_command_line()
+
+    if args.on:
+        print("Turning on lights and exitting")
+        turn_on_lights()
+        sys.exit()
+
+    if args.off:
+        print("Turning off lights and exitting")
+        turn_off_lights()
+        sys.exit()
 
     # We are a service, so set up notifications
     n = sdnotify.SystemdNotifier()
