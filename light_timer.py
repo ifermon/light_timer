@@ -102,7 +102,7 @@ if __name__ == "__main__":
             turn_on_lights()
 
             # Wake up every few secs to tell systemd we are alive
-            total_sleep_time = (next_end_time() - now()).seconds
+            total_sleep_time = (next_end_time() - now()).total_seconds()
             for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
                 time.sleep(WDOG_INTERVAL)
                 n.notify("WATCHDOG=1")
