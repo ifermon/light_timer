@@ -25,6 +25,7 @@ def parse_command_line():
     parser = argparse.ArgumentParser()
     parser.add_argument("-off", action="store_true", help="Turn off light")
     parser.add_argument("-on", action="store_true", help="Turn on light")
+    parser.add_argument("-debug", action="store_true", help="Print converted times")
     return parser.parse_args()
 
 def tz():
@@ -38,9 +39,9 @@ def next_end_time():
     if nw.hour >= TURN_OFF:
         # Need to increment the day
         tomorrow = nw + timedelta(days=1)
-        ret_dt = datetime(tomorrow.year, tomorrow.month, tomorrow.day, TURN_OFF, tzinfo=tz())
+        ret_dt = tz().localize(datetime(tomorrow.year, tomorrow.month, tomorrow.day, TURN_OFF))
     else:
-        ret_dt = datetime(nw.year, nw.month, nw.day, TURN_OFF, tzinfo=tz())
+        ret_dt = tz().localize(datetime(nw.year, nw.month, nw.day, TURN_OFF))
     return ret_dt
 
 def next_start_time():
@@ -48,9 +49,9 @@ def next_start_time():
     if nw.hour >= TURN_ON:
         # need to increment the day
         tomorrow = nw + timedelta(days=1)
-        ret_dt = datetime(tomorrow.year, tomorrow.month, tomorrow.day, TURN_ON, tzinfo=tz())
+        ret_dt = tz().localize(datetime(tomorrow.year, tomorrow.month, tomorrow.day, TURN_ON))
     else:
-        ret_dt = datetime(nw.year, nw.month, nw.day, TURN_ON, tzinfo=tz())
+        ret_dt = tz().localize(datetime(nw.year, nw.month, nw.day, TURN_ON))
     return ret_dt
 
 def turn_on_lights():
@@ -84,6 +85,12 @@ if __name__ == "__main__":
     if args.off:
         print("Turning off lights and exitting")
         turn_off_lights()
+        sys.exit()
+
+    if args.debug:
+        print("next_end_time {}".format(next_end_time()))
+        print("next_start_time {}".format(next_start_time()))
+        print("now {}".format(now()))
         sys.exit()
 
     # We are a service, so set up notifications
