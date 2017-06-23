@@ -14,6 +14,7 @@ Wants=network-online.target
 [Service]
 Type=notify
 Environment=PYTHONDONTWRITEBYTECODE=1
+Environment=PYTHONUNBUFFERED=x
 ExecStart=/home/aero/light_timer/light_timer.py
 WatchdogSec=120
 NotifyAccess=all

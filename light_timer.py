@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python 
 
 import sdnotify
 from datetime import datetime
@@ -20,6 +20,11 @@ TURN_OFF = 21
 
 # This is the broadcom pin identifier
 LIGHT_SIGNAL_PIN = 7
+
+def log(msg):
+    print(msg)
+    sys.stdout.flush()
+    return
 
 def parse_command_line():
     parser = argparse.ArgumentParser()
@@ -58,13 +63,13 @@ def turn_on_lights():
     global pi
     print("Turning on")
     pi.write(LIGHT_SIGNAL_PIN, 1)
-    pass
+    return
 
 def turn_off_lights():
     global pi
     print("Turning off")
     pi.write(LIGHT_SIGNAL_PIN, 0)
-    pass
+    return
 
 def configure_gpio():
     pi = pigpio.pi()
@@ -78,51 +83,62 @@ if __name__ == "__main__":
     args = parse_command_line()
 
     if args.on:
-        print("Turning on lights and exitting")
+        log("Turning on lights and exitting")
         turn_on_lights()
         sys.exit()
 
     if args.off:
-        print("Turning off lights and exitting")
+        log("Turning off lights and exitting")
         turn_off_lights()
         sys.exit()
 
     if args.debug:
-        print("next_end_time {}".format(next_end_time()))
-        print("next_start_time {}".format(next_start_time()))
-        print("now {}".format(now()))
+        log("next_end_time {}".format(next_end_time()))
+        log("next_start_time {}".format(next_start_time()))
+        log("now {}".format(now()))
         sys.exit()
 
     # We are a service, so set up notifications
     n = sdnotify.SystemdNotifier()
     n.notify("READY=1")
 
-    print("TURN_ON = {}".format(TURN_ON))
-    print("TURN_OFF = {}".format(TURN_OFF))
+    time.sleep(5) # Give the system time to startup
+
+    log("TURN_ON = {}".format(TURN_ON))
+    log("TURN_OFF = {}".format(TURN_OFF))
+    sys.stdout.flush()
 
     while True:
-        if now().hour < TURN_OFF and now().hour >= TURN_ON:
-            print("Turning on lights")
-            print("now = {}".format(now()))
-            print("next_end_time = {}".format(next_end_time()))
-            print("next_start_time = {}".format(next_start_time()))
+        nw = now()
+        if nw.hour < TURN_OFF and nw.hour >= TURN_ON:
+            log("Turning on lights")
+            log("now = {}".format(nw))
+            log("next_end_time = {}".format(next_end_time()))
+            log("next_start_time = {}".format(next_start_time()))
             turn_on_lights()
 
             # Wake up every few secs to tell systemd we are alive
-            total_sleep_time = (next_end_time() - now()).total_seconds()
-            for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
-                time.sleep(WDOG_INTERVAL)
-                n.notify("WATCHDOG=1")
+            total_sleep_time = int((next_end_time() - nw).total_seconds())
+            log("Light on, sleeping for {} seconds".format(total_sleep_time))
+            if total_sleep_time <= WDOG_INTERVAL:
+                time.sleep(total_sleep_time)
+            else:
+                for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
+                    time.sleep(WDOG_INTERVAL)
+                    n.notify("WATCHDOG=1")
         else:
-            print("Turning off lights")
+            log("Turning off lights")
             turn_off_lights()
 
             # Wake up every few secs to tell systemd we are alive
-            total_sleep_time = (next_start_time() - now()).seconds
-            print("Total sleep time = {}".format(total_sleep_time))
-            print("next start time {}".format(next_start_time()))
-            print("now {}".format(now()))
-            for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
-                time.sleep(WDOG_INTERVAL)
-                n.notify("WATCHDOG=1")
+            total_sleep_time = int((next_start_time() - nw).seconds)
+            log("Total sleep time = {}".format(total_sleep_time))
+            log("next start time {}".format(next_start_time()))
+            log("now {}".format(nw))
+            if total_sleep_time <= WDOG_INTERVAL:
+                time.sleep(total_sleep_time)
+            else:
+                for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
+                    time.sleep(WDOG_INTERVAL)
+                    n.notify("WATCHDOG=1")
 
