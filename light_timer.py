@@ -76,6 +76,17 @@ def configure_gpio():
     pi.set_mode(LIGHT_SIGNAL_PIN, pigpio.OUTPUT)
     return pi
 
+def sleep(secs):
+    if secs <= WDOG_INTERVAL:
+        time.sleep(secs)
+    else:
+        # Add 2 to make sure we don't wake up just before 
+        for intervals in range(int(secs/WDOG_INTERVAL) + 2):
+            time.sleep(WDOG_INTERVAL)
+            n.notify("WATCHDOG=1")
+    return
+
+
 if __name__ == "__main__":
 
     pi = configure_gpio()
@@ -120,12 +131,7 @@ if __name__ == "__main__":
             # Wake up every few secs to tell systemd we are alive
             total_sleep_time = int((next_end_time() - nw).total_seconds())
             log("Light on, sleeping for {} seconds".format(total_sleep_time))
-            if total_sleep_time <= WDOG_INTERVAL:
-                time.sleep(total_sleep_time)
-            else:
-                for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
-                    time.sleep(WDOG_INTERVAL)
-                    n.notify("WATCHDOG=1")
+            sleep(total_sleep_time)
         else:
             log("Turning off lights")
             turn_off_lights()
@@ -135,10 +141,4 @@ if __name__ == "__main__":
             log("Total sleep time = {}".format(total_sleep_time))
             log("next start time {}".format(next_start_time()))
             log("now {}".format(nw))
-            if total_sleep_time <= WDOG_INTERVAL:
-                time.sleep(total_sleep_time)
-            else:
-                for intervals in range(int(total_sleep_time/WDOG_INTERVAL)):
-                    time.sleep(WDOG_INTERVAL)
-                    n.notify("WATCHDOG=1")
-
+            sleep(total_sleep_time)
