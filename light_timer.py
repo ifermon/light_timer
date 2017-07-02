@@ -77,6 +77,7 @@ def configure_gpio():
     return pi
 
 def sleep(secs):
+    log("Sleeping for {} seconds.".format(secs))
     if secs <= WDOG_INTERVAL:
         time.sleep(secs)
     else:
@@ -122,15 +123,10 @@ if __name__ == "__main__":
     while True:
         nw = now()
         if nw.hour < TURN_OFF and nw.hour >= TURN_ON:
-            log("Turning on lights")
-            log("now = {}".format(nw))
-            log("next_end_time = {}".format(next_end_time()))
-            log("next_start_time = {}".format(next_start_time()))
             turn_on_lights()
 
             # Wake up every few secs to tell systemd we are alive
             total_sleep_time = int((next_end_time() - nw).total_seconds())
-            log("Light on, sleeping for {} seconds".format(total_sleep_time))
             sleep(total_sleep_time)
         else:
             log("Turning off lights")
@@ -138,7 +134,4 @@ if __name__ == "__main__":
 
             # Wake up every few secs to tell systemd we are alive
             total_sleep_time = int((next_start_time() - nw).seconds)
-            log("Total sleep time = {}".format(total_sleep_time))
-            log("next start time {}".format(next_start_time()))
-            log("now {}".format(nw))
             sleep(total_sleep_time)
